@@ -10,10 +10,12 @@ echo "================================================="
 echo ""
 
 # Color codes for output
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+# Use ANSI-C quoting so the variables hold real escape characters and plain
+# `echo` renders colors (otherwise it prints literal \033[...] sequences).
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[1;33m'
+RED=$'\033[0;31m'
+NC=$'\033[0m' # No Color
 
 # Check prerequisites
 echo "${YELLOW}[1/6]${NC} Checking prerequisites..."

@@ -21,6 +21,27 @@ cd Iowa-AI-Sovereignty-Stack
 
 **That's it!** Your sovereign AI system is now operational.
 
+> `deploy.sh` scaffolds docs and config for the external AI tools below. For a
+> **truly sovereign, self-hosted AI** that runs entirely on your own hardware,
+> use the Docker stack in [`stack/`](stack/README.md).
+
+---
+
+## 🔒 Self-Hosted Sovereign Core (Docker)
+
+The part that actually delivers on "sovereign": a local, open-source AI
+assistant (Ollama + Open WebUI) — **$0, no subscriptions, no API keys, and your
+data never leaves your machine.**
+
+```bash
+cd stack
+cp .env.example .env     # optional — defaults work out of the box
+./start.sh               # starts the stack + pulls a model
+```
+
+Then open **http://localhost:3000** for a local, ChatGPT-style chat UI.
+Full instructions, model choices, GPU and Windows notes: [`stack/README.md`](stack/README.md).
+
 ---
 
 ## 💡 What You Get
@@ -90,7 +111,11 @@ cd Iowa-AI-Sovereignty-Stack
 | **Undesign** | Creative resources | Free |
 
 **Total Value**: $124/month = **$1,488/year** (Conservative estimate)
-**Your Cost**: **$0**
+**Your Cost**: **$0** on free tiers
+
+> ⚠️ **Note:** The tools above are **optional, external SaaS** — your data goes
+> to their servers and most charge beyond their free tiers. For fully sovereign,
+> offline-capable AI with no third parties, use the [Docker stack](stack/README.md).
 
 ---
 

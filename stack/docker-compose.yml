@@ -1,0 +1,62 @@
+# Iowa AI Sovereignty Stack — Self-Hosted Open-Source AI Core
+#
+# 100% local. $0/month. No subscriptions, no vendor lock-in.
+# Runs Ollama (the LLM engine) + Open WebUI (a ChatGPT-style interface)
+# entirely on your own machine.
+#
+#   docker compose up -d
+#   Then open http://localhost:${WEBUI_PORT:-3000}
+#
+# See README.md in this folder for first-run steps, model choices, and
+# GPU/Windows notes.
+
+name: iowa-ai-sovereignty-stack
+
+services:
+  # ---- LLM engine: runs the models locally ----
+  ollama:
+    image: ollama/ollama:latest
+    container_name: iowa-ollama
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    # GPU acceleration (optional): uncomment if you have an NVIDIA GPU and
+    # the nvidia-container-toolkit installed. CPU works fine without this.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # ---- Web interface: local ChatGPT-style chat UI ----
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: iowa-open-webui
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    ports:
+      - "${WEBUI_PORT:-3000}:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - WEBUI_AUTH=${WEBUI_AUTH:-True}
+      - WEBUI_NAME=${WEBUI_NAME:-Iowa AI Sovereignty Stack}
+      # Keep embeddings local (served by Ollama) instead of downloading
+      # models from the internet — stays fully sovereign.
+      - RAG_EMBEDDING_ENGINE=ollama
+    volumes:
+      - open_webui_data:/app/backend/data
+
+volumes:
+  ollama_data:
+  open_webui_data:
