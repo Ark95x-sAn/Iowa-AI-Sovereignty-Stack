@@ -86,6 +86,32 @@ run it from WSL/Git Bash.)
 
 ---
 
+## Restricted or air-gapped networks
+
+On a locked-down network (some farms, rural ISPs, or corporate firewalls),
+`ollama pull` may not be able to reach the model registry. You can still run
+fully sovereign — get a `.gguf` model file in by any route your network allows
+(a USB stick, an internal mirror, or Docker Hub's `ai/` model namespace, which
+many firewalls permit) and register it locally:
+
+```bash
+./import-gguf.sh /path/to/model.gguf my-model:tag
+```
+
+Example using Docker Hub's model namespace (works wherever `docker pull` does):
+
+```bash
+docker pull ai/smollm2:360M-Q4_K_M            # downloads the GGUF layer
+# ...locate the pulled .gguf, then:
+./import-gguf.sh ./smollm2-360m.gguf smollm2:360m
+```
+
+The helper uses a ChatML prompt template (fits SmolLM2, Qwen2.5, and most
+modern instruct models); edit the template inside `import-gguf.sh` for models
+that use a different format.
+
+---
+
 ## Why this is the "sovereign" layer
 
 The tools listed in the root `README.md` (Perplexity, Monica, Merlin, …) are
