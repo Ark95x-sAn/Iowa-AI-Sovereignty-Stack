@@ -1,0 +1,28 @@
+{
+  // OpenClaw config — wired to the LOCAL Ollama (../stack) on CPU. $0, no GPU.
+  // Shape per https://github.com/openclaw/openclaw/blob/main/docs/providers/ollama/configuration.md
+  "gateway": { "mode": "local" },
+  "agents": {
+    "defaults": {
+      "model": { "primary": "ollama/qwen2.5:3b" }
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "ollama": {
+        "apiKey": "ollama-local",
+        "baseUrl": "http://host.docker.internal:11434",
+        "api": "ollama",
+        "timeoutSeconds": 300,
+        "models": [
+          {
+            "id": "qwen2.5:3b",
+            "name": "qwen2.5:3b",
+            "params": { "keep_alive": "15m" }
+          }
+        ]
+      }
+    }
+  }
+}

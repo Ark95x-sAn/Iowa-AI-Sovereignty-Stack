@@ -1,0 +1,92 @@
+# Iowa AI Sovereignty Stack — OpenClaw gateway (free, no-GPU)
+#
+# OpenClaw (https://github.com/openclaw/openclaw) is a self-hosted AI gateway
+# that connects chat apps to an LLM backend. This runs it against the LOCAL
+# Ollama from ../stack on CPU — $0, private, no GPU and no paid API key.
+#
+#   ./start.sh
+#   Gateway + control UI: http://localhost:18789
+#
+# Derived from OpenClaw's official docker-compose.yml, trimmed to an
+# image-based (no local build) gateway + cli, with the security hardening kept.
+
+name: iowa-openclaw
+
+services:
+  openclaw-gateway:
+    # Official project image. ghcr.io is the primary registry; this is the
+    # project's official Docker Hub mirror (used here because ghcr.io is not
+    # reachable from every network). Override with OPENCLAW_IMAGE if you like.
+    image: ${OPENCLAW_IMAGE:-openclaw/openclaw:latest}
+    container_name: iowa-openclaw-gateway
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      HOME: /home/node
+      OPENCLAW_HOME: /home/node
+      TERM: xterm-256color
+      # Pin container-side state/config paths (host .env values must not leak in).
+      OPENCLAW_STATE_DIR: /home/node/.openclaw
+      OPENCLAW_CONFIG_PATH: /home/node/.openclaw/openclaw.json
+      OPENCLAW_CONFIG_DIR: /home/node/.openclaw
+      OPENCLAW_WORKSPACE_DIR: /home/node/.openclaw/workspace
+      OPENCLAW_GATEWAY_PORT: "18789"
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
+      TZ: ${OPENCLAW_TZ:-UTC}
+    volumes:
+      - openclaw_data:/home/node/.openclaw
+    # Reach the host-published Ollama (../stack) at http://host.docker.internal:11434.
+    # host-gateway makes this alias work on Linux Docker Engine too.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"   # gateway + control UI
+      - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"    # bridge
+    init: true
+    restart: unless-stopped
+    command:
+      ["node", "dist/index.js", "gateway", "--bind", "${OPENCLAW_GATEWAY_BIND:-lan}", "--port", "18789"]
+    healthcheck:
+      test: ["CMD", "node", "dist/docker-healthcheck.js"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # Run OpenClaw CLI commands against the gateway, e.g.:
+  #   docker compose run --rm openclaw-cli models list
+  openclaw-cli:
+    image: ${OPENCLAW_IMAGE:-openclaw/openclaw:latest}
+    network_mode: "service:openclaw-gateway"
+    # Share the gateway's PID namespace so ownership-scoped commands
+    # (models list, config, infer) can verify the running gateway.
+    pid: "service:openclaw-gateway"
+    profiles: ["cli"]
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      HOME: /home/node
+      OPENCLAW_HOME: /home/node
+      OPENCLAW_STATE_DIR: /home/node/.openclaw
+      OPENCLAW_CONFIG_PATH: /home/node/.openclaw/openclaw.json
+      OPENCLAW_CONFIG_DIR: /home/node/.openclaw
+      OPENCLAW_GATEWAY_PORT: "18789"
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
+    volumes:
+      - openclaw_data:/home/node/.openclaw
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    entrypoint: ["node", "dist/index.js"]
+
+volumes:
+  openclaw_data:
