@@ -96,6 +96,10 @@ between them.
    set a token via `OPENCLAW_GATEWAY_TOKEN` in `.env`.)
 3. Open http://localhost:18789.
 
+**Want it running 24/7 (even with your PC off)?** See **[DEPLOY.md](DEPLOY.md)** —
+Windows steps plus free/cheap always-on hosting (Oracle Cloud free tier, a small
+VPS, or a home box), with how to secure the gateway.
+
 ---
 
 ## Notes
